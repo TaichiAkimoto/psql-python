@@ -18,7 +18,7 @@ def popular_three_articles():
 def popular_authors():
     conn = psycopg2.connect("dbname="+dbname)
     cur = conn.cursor()
-    cur.execute("select authors.name, count(*) as num from authors join articles on authors.id = articles.author join log on log.path like concat('%', articles.slug) group by authors.name order by num desc")
+    cur.execute("select authors.name, count(log.path) as num from authors join articles on authors.id = articles.author join log on log.path like concat('%', articles.slug) group by authors.name order by num desc")
     authors = cur.fetchall()
     conn.close()
     result = ''
