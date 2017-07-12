@@ -27,5 +27,23 @@ def popular_authors():
     print("*** Who are the most popular article authors of all time?   ***")
     print(result)
 
+def error_days():
+    conn = psycopg2.connect("dbname="+dbname)
+    cur = conn.cursor()
+    cur.execute("create view time_status as select to_char(time, 'FMMonth DD,YYYY') as date, status from log")
+    cur.execute("create view error_table as select date, count(status) as errors from time_status where status like '404%' group by date")
+    cur.execute("create view log_table as select date, count(status) as logs from time_status group by date")
+    cur.execute("select error_table.date, error_table.errors*100/cast(log_table.logs as float) from error_table join log_table on error_table.date = log_table.date where error_table.errors*100/cast(log_table.logs as float) > 1.0")
+    errors = cur.fetchall()
+    conn.close()
+    result = ''
+    for i in range(0, len(errors)):
+        result = result + errors[i][0] + " - " + str(round(errors[i][1], 2)) + "% errors \n"
+    if result == '':
+        result = "No big error occured"
+    print("*** On which days did more than 1% of requests lead to errors? ***")
+    print(result)
+
 popular_three_articles()
 popular_authors()
+error_days()
